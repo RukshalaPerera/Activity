@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">WebSocket Test</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="form-group">
+                <input type="text" id="messageInput" class="form-control" placeholder="Enter Message">
+            </div>
+            <div class="text-center">
+                <button id="connectBtn" class="btn btn-primary mb-2">Connect</button>
+                <button id="sendBtn" class="btn btn-success mb-2" disabled>Send Message</button>
+                <button id="closeBtn" class="btn btn-danger mb-2" disabled>Close Connection</button>
+            </div>
+            <div id="messages" class="mt-3 border rounded p-3" style="height: 200px; overflow-y: auto;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let ws;
+
+    document.getElementById('connectBtn').onclick = () => {
+        ws = new WebSocket('ws://localhost:3000/ws');
+
+        ws.onopen = () => {
+            document.getElementById('messages').innerHTML += '<p class="text-success">Connected</p>';
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('closeBtn').disabled = false;
+        };
+
+        ws.onmessage = (event) => {
+            document.getElementById('messages').innerHTML += `<p class="text-info">Received: ${event.data}</p>`;
+        };
+
+        ws.onclose = () => {
+            document.getElementById('messages').innerHTML += '<p class="text-danger">Disconnected</p>';
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('closeBtn').disabled = true;
+        };
+    };
+
+    document.getElementById('sendBtn').onclick = () => {
+        const message = document.getElementById('messageInput').value;
+        ws.send(message);
+        document.getElementById('messages').innerHTML += `<p class="text-primary">Sent: ${message}</p>`;
+    };
+
+    document.getElementById('closeBtn').onclick = () => {
+        ws.close();
+    };
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

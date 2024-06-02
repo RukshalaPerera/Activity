@@ -1,0 +1,29 @@
+package main
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"time"
+)
+
+func main() {
+	app := fiber.New()
+
+	rateLimiter := limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 60 * time.Second,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+	})
+	app.Use(rateLimiter)
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello, World.")
+	})
+	app.Get("/api/data", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"message": "Here is your data",
+		})
+	})
+	app.Listen(":3000")
+}
