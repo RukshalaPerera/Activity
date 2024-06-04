@@ -72,20 +72,21 @@ func GetAUser(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": user}})
 }
 
-//updateUser
-
+// updateUser
 func EditAUser(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	Id := c.Params("_id")
+	_id := c.Params("_id")
 	var user models.User
 	defer cancel()
 
-	objId, _ := primitive.ObjectIDFromHex(Id)
+	objId, _ := primitive.ObjectIDFromHex(_id)
 
+	//validate the request body
 	if err := c.BodyParser(&user); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
+	//use the validator library to validate required fields
 	if validationErr := validate.Struct(&user); validationErr != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
@@ -101,14 +102,14 @@ func EditAUser(c *fiber.Ctx) error {
 		"nationality":     user.Nationality,
 		"birth_date":      user.BirthDate,
 		"registered_date": user.RegisteredDate,
-		"phone_number":    user.PhoneNumber,
-	}
+		"phone_number":    user.PhoneNumber}
 
 	result, err := userCollection.UpdateOne(ctx, bson.M{"_id": objId}, bson.M{"$set": update})
 
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
+
 	var updatedUser models.User
 	if result.MatchedCount == 1 {
 		err := userCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&updatedUser)
@@ -172,7 +173,8 @@ func GetAllUsers(c *fiber.Ctx) error {
 	)
 }
 
-func SearchUsers(c *fiber.Ctx) error { // Renamed to SearchUsers for clarity
+// search users
+func SearchUsers(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
